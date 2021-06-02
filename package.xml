@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ethernet_bridge</name>
+  <version>1.0.0</version>
+  <description>Ethernet Bridges</description>
+  <author>Philipp Berthold</author>
+  <maintainer email="philipp.berthold@unibw.de">phbe</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>ethernet_msgs</build_depend>
+  <build_depend>librosqt</build_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>ethernet_msgs</build_export_depend>
+  <build_export_depend>librosqt</build_export_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>ethernet_msgs</exec_depend>
+
+</package>
