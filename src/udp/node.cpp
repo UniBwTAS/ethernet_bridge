@@ -58,7 +58,7 @@ Node::~Node()
 void Node::rosCallback_ethernet(const ethernet_msgs::Packet::ConstPtr &msg)
 {
     QNetworkDatagram datagram(QByteArray(reinterpret_cast<const char*>(msg->payload.data()), msg->payload.size()), QHostAddress(ethernet_msgs::nativeIp4ByArray(msg->receiver_ip)), msg->receiver_port);
-    if (ethernet_msgs::nativeIp4ByArray(msg->sender_ip) != 0)
+    if (ethernet_msgs::nativeIp4ByArray(msg->sender_ip) != 0 || msg->sender_port != 0)
         datagram.setSender(QHostAddress(ethernet_msgs::nativeIp4ByArray(msg->sender_ip)), msg->sender_port);
 
     socket_->writeDatagram(datagram);
