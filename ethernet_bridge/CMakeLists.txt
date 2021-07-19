@@ -29,3 +29,7 @@ include_directories(
 ## UDP Bridge
 add_executable(udp src/udp/main.cpp src/udp/node.cpp)
 target_link_libraries(udp ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
+
+## TCP Client Bridge
+add_executable(tcp_client src/tcp_client/main.cpp src/tcp_client/node.cpp)
+target_link_libraries(tcp_client ${catkin_LIBRARIES} Qt5::Core Qt5::Network)

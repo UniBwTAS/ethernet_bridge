@@ -23,6 +23,7 @@ ethernet_bridges are a set of ROS nodes to bridge network interfaces from and to
 
 ## Currently available bridges
 - UDP node
+- TCP client node
 
 ## ROS Package Dependencies
 
@@ -59,6 +60,40 @@ This is an extract of a launch file for a BroadR-Reach-based radar sensor networ
     <param name="topic_event"           value="$(arg topic_ethernet)/event" />
     <param name="ethernet_bindAddress"  value="$(arg ethernet_ip)" />
     <param name="ethernet_bindPort"     value="$(arg ethernet_port)" />
+  </node>
+```
+
+### _tcp_client_: TCP Client Bridge
+This bridge acts as a TCP client socket. It can be configured to periodically reconnect on connection loss and use a custom buffer size to control the data flow latency.
+The TCP client bridge publishes the current connection state for monitoring purposes.
+
+#### Options
+
+- `topic_*`: ROS topic specific configuration segment
+  - `topic_busToHost`: ROS topic which receives Ethernet packets (published by bridge)
+  - `topic_hostToBus`: ROS topic which sends Ethernet packets (subscribed by bridge)
+  - `topic_event`: ROS topic providing communication events (published by bridge)
+- `ethernet_*`: Ethernet interface specific configuration segment
+  - `ethernet_peerAddress`: TCP server address
+  - `ethernet_peerPort`: TCP server port
+  - `ethernet_bufferSize`: custom buffer size in bytes. Use 0 for system default. Default: 0.
+  - `ethernet_reconnectInterval`: Auto-reconnect (on connection loss) interval in milliseconds. Use 0 to deactivate. Default: 500ms.
+
+#### Application Example
+
+```
+  <!-- Node parameters -->
+  <arg name="topic_ethernet"        default="/bus/ethernet/your_device/tcp55555" />
+  <arg name="ethernet_ip"           default="192.168.77.1" />
+  <arg name="ethernet_port"         default="55555" />
+  
+  <!-- Ethernet bridge node -->
+  <node pkg="ethernet_bridge" type="udp" name="udp">
+    <param name="topic_busToHost"       value="$(arg topic_ethernet)/bus_to_host" />
+    <param name="topic_hostToBus"       value="$(arg topic_ethernet)/host_to_bus" />
+    <param name="topic_event"           value="$(arg topic_ethernet)/event" />
+    <param name="ethernet_peerAddress"  value="$(arg ethernet_ip)" />
+    <param name="ethernet_peerPort"     value="$(arg ethernet_port)" />
   </node>
 ```
 
