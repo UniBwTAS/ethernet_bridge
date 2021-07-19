@@ -23,6 +23,7 @@ ethernet_bridges are a set of ROS nodes to bridge network interfaces from and to
 
 ## Currently available bridges
 - UDP node
+- UDP bundler node which bundles UDP packets of a burst (e.g. fragmented sensor measurement) and thereby drastically reduces the number of ROS messages
 - TCP client node
 
 ## ROS Package Dependencies
@@ -62,6 +63,34 @@ This is an extract of a launch file for a BroadR-Reach-based radar sensor networ
     <param name="ethernet_bindPort"     value="$(arg ethernet_port)" />
   </node>
 ```
+
+### _udp_bundler_: UDP Bundler Bridge
+Similar to the standard UDP node, but bundles UDP packets of a burst. It significantly reduces the number of ROS messages to transfer fragmented data like camera measurements.
+Three parameters trigger the sending of the currently collected UDP packets as a list in a single message (`ethernet_msgs/Packets`) over ROS:
+
+- _Number of Packets_: when the number of currently collected UDP packets exceeds this parameter, the collection is sent. Default: 50.
+- _Maximum Packet Age_: as soon as the oldest collected UDP packet (= the first obtained one of the current collection) exceeds this parameter, the collection is sent. Default: 10ms.
+- _Maximum Idle Time_: when no further packet has been received in this time, the current collection is sent. Default: 2ms.
+
+Depending on the choice of these parameters, an additional latency is introduced. Typically, the actual processing latency of fragmented data in a burst depends only from _Maximum Idle Time_. This parmeter can be set to 1ms or 2ms to achieve a very good compromise between additional latency and burst bundling performance.
+
+#### Options
+
+- `topic_*`: ROS topic specific configuration segment
+  - `topic_busToHost`: ROS topic which receives Ethernet packets (published by bridge)
+  - `topic_hostToBus`: ROS topic which sends Ethernet packets (subscribed by bridge)
+  - `topic_event`: ROS topic providing communication events (published by bridge)
+- `ethernet_*`: Ethernet interface specific configuration segment
+  - `ethernet_bindAddress`: specific local IP bind address (optional)
+  - `ethernet_bindPort`: local listening port
+- `trigger_*`: Trigger specific configuration segment
+  - `trigger_numberOfPackets`: parameter _Number of Packets_
+  - `trigger_maximumPacketAge`: parameter _Maximum Packet Age_ in milliseconds
+  - `trigger_maximumIdleTime`: parameter _Maximum Idle Time_ in milliseconds
+
+#### Application Example
+
+similar to the standard UDP node _udp_.
 
 ### _tcp_client_: TCP Client Bridge
 This bridge acts as a TCP client socket. It can be configured to periodically reconnect on connection loss and use a custom buffer size to control the data flow latency.

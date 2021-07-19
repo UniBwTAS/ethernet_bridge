@@ -33,3 +33,7 @@ target_link_libraries(udp ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
 ## TCP Client Bridge
 add_executable(tcp_client src/tcp_client/main.cpp src/tcp_client/node.cpp)
 target_link_libraries(tcp_client ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
+
+## UDP Bundler Bridge
+add_executable(udp_bundler src/udp_bundler/main.cpp src/udp_bundler/node.cpp)
+target_link_libraries(udp_bundler ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
