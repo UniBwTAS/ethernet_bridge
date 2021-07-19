@@ -14,7 +14,11 @@ Node::Node(ros::NodeHandle& node_handle) : ros_handle_(node_handle)
     node_handle.param<std::string>("topic_busToHost", configuration_.topic_busToHost, "bus_to_host");
     node_handle.param<std::string>("topic_hostToBus", configuration_.topic_hostToBus, "host_to_bus");
     node_handle.param<std::string>("topic_event", configuration_.topic_event, "event");
+
+    // Frame
     node_handle.param<std::string>("frame", configuration_.frame, "");
+
+    // Ethernet connection
     node_handle.param<std::string>("ethernet_bindAddress", configuration_.ethernet_bindAddress, "0.0.0.0");
     node_handle.param<int>("ethernet_bindPort", configuration_.ethernet_bindPort, 55555);
 
@@ -26,11 +30,14 @@ Node::Node(ros::NodeHandle& node_handle) : ros_handle_(node_handle)
     /// Initialize socket
     socket_ = new QUdpSocket(this);
     connect(socket_, SIGNAL(readyRead()), this, SLOT(slotEthernetNewData()));
-    connect(socket_, SIGNAL(connected()), this, SLOT(slotEthernetDisconnected()));
-    connect(socket_, SIGNAL(disconnected()), this, SLOT(slotEthernetConnected()));
+    connect(socket_, SIGNAL(connected()), this, SLOT(slotEthernetConnected()));
+    connect(socket_, SIGNAL(disconnected()), this, SLOT(slotEthernetDisconnected()));
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
     connect(socket_, SIGNAL(errorOccured(QAbstractSocket::SocketError)), this, SLOT(slotEthernetError(QAbstractSocket::SocketError)));
 #endif
+
+    // Publish unconnected state
+    slotEthernetDisconnected();
 
     // Don't share port (Qt-Socket)
 //  bool success = socket_->bind(QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)), configuration_.ethernet_bindPort, QAbstractSocket::DontShareAddress);
@@ -46,7 +53,6 @@ Node::Node(ros::NodeHandle& node_handle) : ros_handle_(node_handle)
 //  socket_->setSocketDescriptor(sockfd, QUdpSocket::UnconnectedState);
 //  bool success = socket_->bind(QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)), configuration_.ethernet_bindPort, QAbstractSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
-    slotEthernetDisconnected();
     ROS_INFO("Binding to %s:%u -> %s", QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)).toString().toLatin1().data(), configuration_.ethernet_bindPort, success?"ok":"failed");
 }
 
@@ -58,7 +64,7 @@ Node::~Node()
 void Node::rosCallback_ethernet(const ethernet_msgs::Packet::ConstPtr &msg)
 {
     QNetworkDatagram datagram(QByteArray(reinterpret_cast<const char*>(msg->payload.data()), msg->payload.size()), QHostAddress(ethernet_msgs::nativeIp4ByArray(msg->receiver_ip)), msg->receiver_port);
-    if (ethernet_msgs::nativeIp4ByArray(msg->sender_ip) != 0 || msg->sender_port != 0)
+    if (ethernet_msgs::nativeIp4ByArray(msg->sender_ip) != 0)
         datagram.setSender(QHostAddress(ethernet_msgs::nativeIp4ByArray(msg->sender_ip)), msg->sender_port);
 
     socket_->writeDatagram(datagram);
@@ -87,6 +93,7 @@ void Node::slotEthernetNewData()
     }
 }
 
+// Note: UDP sockets are usually not "connected" or "disconnected"
 void Node::slotEthernetConnected()
 {
     ethernet_msgs::Event event;
@@ -97,6 +104,8 @@ void Node::slotEthernetConnected()
     event.type = ethernet_msgs::EventType::CONNECTED;
 
     publisher_ethernet_event_.publish(event);
+
+    ROS_INFO("Connected.");
 }
 
 void Node::slotEthernetDisconnected()
@@ -109,6 +118,8 @@ void Node::slotEthernetDisconnected()
     event.type = ethernet_msgs::EventType::DISCONNECTED;
 
     publisher_ethernet_event_.publish(event);
+
+    ROS_INFO("Disconnected.");
 }
 
 void Node::slotEthernetError(int error_code)
@@ -122,4 +133,6 @@ void Node::slotEthernetError(int error_code)
     event.value = error_code;
 
     publisher_ethernet_event_.publish(event);
+
+    ROS_WARN("Connection error occured, socket error code: %i", error_code);
 }

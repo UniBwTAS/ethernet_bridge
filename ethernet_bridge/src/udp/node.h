@@ -31,7 +31,6 @@ private:
     // configuration
     struct
     {
-        // ROS topics
         std::string topic_busToHost;
         std::string topic_hostToBus;
         std::string topic_event;
