@@ -29,8 +29,7 @@ ethernet_bridges are a set of ROS nodes to bridge network interfaces from and to
 
 ## ROS Package Dependencies
 
-- `ethernet_msgs`
-- `librosqt`
+- `librosqt` (only needed for the bridging nodes)
 
 ## Nodes Description
 ### _udp_: Standard UDP Bridge
@@ -150,6 +149,21 @@ This packet can be used to change the recipients IP and port of `ethernet_msgs/P
     <param name="redirect_port"     value="0" />
   </node>
 ```
+
+## Benchmarks
+The following benchmarks denote the CPU overhead caused by using the Ethernet abstraction between Ethernet interface and parser nodes. The overhead has been computed by subtracting the CPU load of a) the Ethernet bridge plus b) the receiving node from the CPU load of a comparable receiving node which receives the Ethernet data directly (i.e. a traditional parser).
+
+| Load                                        | Application Example         | `udp`                 | `udp_bundler`       |
+|---------------------------------------------|-----------------------------|-----------------------|---------------------|
+| BW 5MBit/s, Rate 100Hz, MTU 1500Bytes       | INS, Radar Network          | <0,5% CPU (4% core)   | <0,5% CPU (4% core) |
+| BW ~7,7MByte/s, Bursts 100Hz, MTU 1500Bytes | High-res LiDAR scanners     | 2,8% CPU (22% core)   | 0,8% CPU (6% core)  |
+| BW ~75MByte/s, Bursts 100Hz, MTU 9000Bytes  | Camera                      | 4,9% CPU (39% core)   | 1,1% CPU (9% core)  |
+| BW ~75MByte/s, Bursts 100Hz, MTU 1500Bytes  | Camera without Jumbo Frames | >100% core RIP        | 1,1% CPU (9% core)  |
+| BW ~175MByte/s, Bursts 500Hz, MTU 9000Bytes | Dummy data generator (test) | -                     | 1,6% CPU (13% core) |
+
+The results of the `udp` node show that the CPU overhead is mainly caused by the number of messages per second, and barely caused by the size of the messages or the message bandwidth itself. This is exactly where the `udp_bundler` steps in: it bundles the Ethernet packets and significantly reduces the number of messages which are transferred over the ROS network.
+As a result, the `udp` node can be used for any type of network device as long as the number of Ethernet packets is below ~10kHz (considering the given computer system).
+The benchmarks have been measured with an i7-4790k CPU from 2014. All ROS nodes dealing with the `ethernet_msgs` run on the same machine and benefit from the loopback implementations.
 
 ## Contributions
 
