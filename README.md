@@ -25,6 +25,7 @@ ethernet_bridges are a set of ROS nodes to bridge network interfaces from and to
 - UDP node
 - UDP bundler node which bundles UDP packets of a burst (e.g. fragmented sensor measurement) and thereby drastically reduces the number of ROS messages
 - TCP client node
+- Packet redirecting node, can be used to send Ethernet messages from a ROS bag to the local network with modified recipients
 
 ## ROS Package Dependencies
 
@@ -123,6 +124,30 @@ The TCP client bridge publishes the current connection state for monitoring purp
     <param name="topic_event"           value="$(arg topic_ethernet)/event" />
     <param name="ethernet_peerAddress"  value="$(arg ethernet_ip)" />
     <param name="ethernet_peerPort"     value="$(arg ethernet_port)" />
+  </node>
+```
+
+### _redirector_: Packet Redirecting Node
+This packet can be used to change the recipients IP and port of `ethernet_msgs/Packet` in ROS on-the-fly. Its main use case is to read Ethernet packets from a ROS bag, altering their recipients, and passing them to a Ethernet bridge like `ethernet_bridge/udp`. This way, it can be used to re-inject Ethernet packets from a bag to the network and allow other parsers or proprietary manufacturer software to process the Ethernet data in the bag.
+
+#### Options
+
+- `topic_*`: ROS topic specific configuration segment
+  - `topic_in`: ROS topic with the original messages (subscribed)
+  - `topic_out`: ROS topic with the modified messages (published)
+- `redirect_*`: Redirecting specific configuration segment
+  - `redirect_address`: new IP or host address of recipient. Use "" if redirecting the IP is not desired.
+  - `redirect_port`: new port of recipient. Use 0 if redirecting the port is not desired.
+
+#### Application Example
+
+```
+  <!-- Redirector node -->
+  <node pkg="ethernet_bridge" type="redirector" name="redirector">
+    <param name="topic_in"          value="source/bus_to_host" />
+    <param name="topic_out"         value="target/host_to_bus" />
+    <param name="redirect_address"  value="192.168.1.123" />
+    <param name="redirect_port"     value="0" />
   </node>
 ```
 

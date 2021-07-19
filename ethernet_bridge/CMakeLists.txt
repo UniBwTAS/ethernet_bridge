@@ -37,3 +37,7 @@ target_link_libraries(tcp_client ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
 ## UDP Bundler Bridge
 add_executable(udp_bundler src/udp_bundler/main.cpp src/udp_bundler/node.cpp)
 target_link_libraries(udp_bundler ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
+
+## Redirector
+add_executable(redirector src/redirector/main.cpp src/redirector/node.cpp)
+target_link_libraries(redirector ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
