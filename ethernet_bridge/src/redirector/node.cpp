@@ -3,20 +3,20 @@
 #include <QHostAddress>
 
 
-Node::Node(ros::NodeHandle& node_handle) : ros_handle_(node_handle)
+Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_nh_(nh)
 {
     /// Parameter
     // Topics
-    node_handle.param<std::string>("topic_in", configuration_.topic_in, "bus_to_host");
-    node_handle.param<std::string>("topic_out", configuration_.topic_out, "host_to_bus");
+    private_nh.param<std::string>("topic_in", configuration_.topic_in, "bus_to_host");
+    private_nh.param<std::string>("topic_out", configuration_.topic_out, "host_to_bus");
 
     // Redirection Rules
-    node_handle.param<std::string>("redirect_address", configuration_.redirect_address, "");
-    node_handle.param<int>("redirect_port", configuration_.redirect_port, 0);
+    private_nh.param<std::string>("redirect_address", configuration_.redirect_address, "");
+    private_nh.param<int>("redirect_port", configuration_.redirect_port, 0);
 
     /// Subscribing & Publishing
-    subscriber_ethernet_in_ = ros_handle_.subscribe(configuration_.topic_in, 100, &Node::rosCallback_ethernet_in, this);
-    publisher_ethernet_out_ = ros_handle_.advertise<ethernet_msgs::Packet>(configuration_.topic_out, 100);
+    subscriber_ethernet_in_ = nh.subscribe(configuration_.topic_in, 100, &Node::rosCallback_ethernet_in, this);
+    publisher_ethernet_out_ = nh.advertise<ethernet_msgs::Packet>(configuration_.topic_out, 100);
 
     /// Set redirection rule
     new_receiver_address_valid_ = false;

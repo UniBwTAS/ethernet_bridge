@@ -7,12 +7,13 @@ class Node
 {
 
 public:
-    Node(ros::NodeHandle& node_handle);
+    Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh);
     ~Node();
 
 private:
     // Reference to ROS Handle
-    ros::NodeHandle& ros_handle_;
+    ros::NodeHandle& nh_;
+    ros::NodeHandle& private_nh_;
 
     // ROS Interfaces
     ros::Subscriber subscriber_ethernet_in_;

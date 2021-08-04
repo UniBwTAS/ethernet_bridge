@@ -7,27 +7,27 @@
 #include <ethernet_msgs/utils.h>
 
 
-Node::Node(ros::NodeHandle& node_handle) : ros_handle_(node_handle)
+Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_nh_(nh)
 {
     /// Parameter
     // Topics
-    node_handle.param<std::string>("topic_busToHost", configuration_.topic_busToHost, "bus_to_host");
-    node_handle.param<std::string>("topic_hostToBus", configuration_.topic_hostToBus, "host_to_bus");
-    node_handle.param<std::string>("topic_event", configuration_.topic_event, "event");
+    private_nh.param<std::string>("topic_busToHost", configuration_.topic_busToHost, "bus_to_host");
+    private_nh.param<std::string>("topic_hostToBus", configuration_.topic_hostToBus, "host_to_bus");
+    private_nh.param<std::string>("topic_event", configuration_.topic_event, "event");
 
     // Frame
-    node_handle.param<std::string>("frame", configuration_.frame, "");
+    private_nh.param<std::string>("frame", configuration_.frame, "");
 
     // Ethernet connection
-    node_handle.param<std::string>("ethernet_peerAddress", configuration_.ethernet_peerAddress, "127.0.0.1");
-    node_handle.param<int>("ethernet_peerPort", configuration_.ethernet_peerPort, 55555);
-    node_handle.param<int>("ethernet_bufferSize", configuration_.ethernet_bufferSize, 0);
-    node_handle.param<int>("ethernet_reconnectInterval", configuration_.ethernet_reconnectInterval, 500);
+    private_nh.param<std::string>("ethernet_peerAddress", configuration_.ethernet_peerAddress, "127.0.0.1");
+    private_nh.param<int>("ethernet_peerPort", configuration_.ethernet_peerPort, 55555);
+    private_nh.param<int>("ethernet_bufferSize", configuration_.ethernet_bufferSize, 0);
+    private_nh.param<int>("ethernet_reconnectInterval", configuration_.ethernet_reconnectInterval, 500);
 
     /// Subscribing & Publishing
-    subscriber_ethernet_ = ros_handle_.subscribe(configuration_.topic_hostToBus, 100, &Node::rosCallback_ethernet, this);
-    publisher_ethernet_packet_ = ros_handle_.advertise<ethernet_msgs::Packet>(configuration_.topic_busToHost, 100);
-    publisher_ethernet_event_ = ros_handle_.advertise<ethernet_msgs::Event>(configuration_.topic_event, 100, true);
+    subscriber_ethernet_ = nh.subscribe(configuration_.topic_hostToBus, 100, &Node::rosCallback_ethernet, this);
+    publisher_ethernet_packet_ = nh.advertise<ethernet_msgs::Packet>(configuration_.topic_busToHost, 100);
+    publisher_ethernet_event_ = nh.advertise<ethernet_msgs::Event>(configuration_.topic_event, 100, true);
 
     /// Bring up socket
     // Initialiazation

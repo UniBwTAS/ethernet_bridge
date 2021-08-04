@@ -12,10 +12,11 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "ethernet_bridge_tcp", ros::init_options::NoSigintHandler);
 
     /// Initialization of the node
-    ros::NodeHandle n("~");
+    ros::NodeHandle nh;
+    ros::NodeHandle private_nh("~");
 
     /// Start node
-    Node node(n);
+    Node node(nh, private_nh);
 
     /// Run node
     app.exec();
