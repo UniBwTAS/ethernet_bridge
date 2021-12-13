@@ -23,7 +23,8 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
     private_nh.param<int>("ethernet_bindPort", configuration_.ethernet_bindPort, 55555);
 
     /// Subscribing & Publishing
-    subscriber_ethernet_ = nh.subscribe(configuration_.topic_hostToBus, 100, &Node::rosCallback_ethernet, this);
+    ros::TransportHints t = ros::TransportHints().tcp().tcpNoDelay(true);
+    subscriber_ethernet_ = nh.subscribe(configuration_.topic_hostToBus, 100, &Node::rosCallback_ethernet, this, t);
     publisher_ethernet_packet_ = nh.advertise<ethernet_msgs::Packet>(configuration_.topic_busToHost, 100);
     publisher_ethernet_event_ = nh.advertise<ethernet_msgs::Event>(configuration_.topic_event, 100, true);
 
