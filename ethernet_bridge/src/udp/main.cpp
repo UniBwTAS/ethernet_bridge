@@ -1,25 +1,22 @@
-#include <ros/ros.h>
 #include <QCoreApplication>
-#include <librosqt/QRosCallBackQueue.h>
+#include <rclcpp/rclcpp.hpp>
+#include <libros2qt/qt_executor.h>
 
 #include "node.h"
 
-int main(int argc, char **argv)
-{
-    /// Initialization of ROS and Qt
-    QCoreApplication app(argc, argv);
-    QRosCallBackQueue::replaceGlobalQueue();
-    ros::init(argc, argv, "ethernet_bridge_udp", ros::init_options::NoSigintHandler);
+int main(int argc, char* argv[]) {
 
-    /// Initialization of the node
-    ros::NodeHandle nh;
-    ros::NodeHandle private_nh("~");
+    QCoreApplication a(argc, argv);
+    rclcpp::init(argc, argv);
 
-    /// Start node
-    Node node(nh, private_nh);
+    auto server = std::make_shared<Node>("ethernet_bridge_udp");
 
-    /// Run node
-    app.exec();
+    QtExecutor executor;
+    executor.add_node(server);
 
-    return 0;
+    executor.start();
+
+    auto res = a.exec();
+    rclcpp::shutdown();
+    return res;
 }

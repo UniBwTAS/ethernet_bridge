@@ -1,40 +1,35 @@
 #pragma once
 
-#include <ros/ros.h>
-#include <ethernet_msgs/Packet.h>
+#include <rclcpp/rclcpp.hpp>
+#include <QAbstractSocket>
+#include <ethernet_msgs/msg/packet.hpp>
+#include <ethernet_msgs/msg/event.hpp>
 #include <QObject>
 
 class QUdpSocket;
 
-class Node : public QObject
+class Node : public QObject, public rclcpp::Node
 {
     Q_OBJECT
 
 public:
-    Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh);
+    Node(const std::string& name);
     ~Node();
 
 private:
-    // Reference to ROS Handle
-    ros::NodeHandle& nh_;
-    ros::NodeHandle& private_nh_;
-
     // ROS Interfaces
-    ros::Subscriber subscriber_ethernet_;
-    ros::Publisher 	publisher_ethernet_packet_;
-    ros::Publisher 	publisher_ethernet_event_;
+    rclcpp::Subscription<ethernet_msgs::msg::Packet>::SharedPtr subscriber_ethernet_;
+    rclcpp::Publisher<ethernet_msgs::msg::Packet>::SharedPtr publisher_ethernet_packet_;
+    rclcpp::Publisher<ethernet_msgs::msg::Event>::SharedPtr publisher_ethernet_event_;
 
 private:
     // ROS data reception callbacks
-    void rosCallback_ethernet(const ethernet_msgs::Packet::ConstPtr &msg);
+    void rosCallback_ethernet(const ethernet_msgs::msg::Packet::ConstSharedPtr &msg);
 
 private:
     // configuration
     struct
     {
-        std::string topic_busToHost;
-        std::string topic_hostToBus;
-        std::string topic_event;
         std::string frame;
         std::string ethernet_bindAddress;
         int         ethernet_bindPort;
@@ -48,9 +43,9 @@ private slots:
     void slotEthernetNewData();
     void slotEthernetConnected();
     void slotEthernetDisconnected();
-    void slotEthernetError(int error_code);
+    void slotEthernetError(QAbstractSocket::SocketError error_code);
 
     // cache for runtime optimization
 private:
-    ethernet_msgs::Packet packet;
+    ethernet_msgs::msg::Packet packet;
 };

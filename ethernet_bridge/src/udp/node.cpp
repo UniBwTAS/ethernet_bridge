@@ -1,32 +1,29 @@
 #include "node.h"
 #include <QUdpSocket>
 #include <QNetworkDatagram>
-#include <ethernet_msgs/Event.h>
-#include <ethernet_msgs/EventType.h>
-#include <ethernet_msgs/ProtocolType.h>
-#include <ethernet_msgs/utils.h>
+#include <ethernet_msgs/msg/event.hpp>
+#include <ethernet_msgs/msg/event_type.hpp>
+#include <ethernet_msgs/msg/protocol_type.hpp>
+#include <ethernet_msgs/utils.hpp>
 
 
-Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_nh_(nh)
+Node::Node(const std::string& name) : rclcpp::Node(name)
 {
     /// Parameter
-    // Topics
-    private_nh.param<std::string>("topic_busToHost", configuration_.topic_busToHost, "bus_to_host");
-    private_nh.param<std::string>("topic_hostToBus", configuration_.topic_hostToBus, "host_to_bus");
-    private_nh.param<std::string>("topic_event", configuration_.topic_event, "event");
-
     // Frame
-    private_nh.param<std::string>("frame", configuration_.frame, "");
+    this->declare_parameter<std::string>("frame", "");
+    this->get_parameter("frame", configuration_.frame);
 
     // Ethernet connection
-    private_nh.param<std::string>("ethernet_bindAddress", configuration_.ethernet_bindAddress, "0.0.0.0");
-    private_nh.param<int>("ethernet_bindPort", configuration_.ethernet_bindPort, 55555);
+    this->declare_parameter<std::string>("ethernet_bindAddress", "0.0.0.0");
+    this->get_parameter("ethernet_bindAddress", configuration_.ethernet_bindAddress);
+    this->declare_parameter<int>("ethernet_bindPort", 55555);
+    this->get_parameter("ethernet_bindPort", configuration_.ethernet_bindPort);
 
     /// Subscribing & Publishing
-    ros::TransportHints t = ros::TransportHints().tcp().tcpNoDelay(true);
-    subscriber_ethernet_ = nh.subscribe(configuration_.topic_hostToBus, 100, &Node::rosCallback_ethernet, this, t);
-    publisher_ethernet_packet_ = nh.advertise<ethernet_msgs::Packet>(configuration_.topic_busToHost, 100);
-    publisher_ethernet_event_ = nh.advertise<ethernet_msgs::Event>(configuration_.topic_event, 100, true);
+    subscriber_ethernet_ = this->create_subscription<ethernet_msgs::msg::Packet>("host_to_bus", rclcpp::SensorDataQoS().keep_last(10000), std::bind(&Node::rosCallback_ethernet, this, std::placeholders::_1));
+    publisher_ethernet_packet_ = this->create_publisher<ethernet_msgs::msg::Packet>("bus_to_host", 10000);
+    publisher_ethernet_event_ = this->create_publisher<ethernet_msgs::msg::Event>("event", rclcpp::QoS(1).transient_local());
 
     /// Initialize socket
     socket_ = new QUdpSocket(this);
@@ -34,7 +31,7 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
     connect(socket_, SIGNAL(connected()), this, SLOT(slotEthernetConnected()));
     connect(socket_, SIGNAL(disconnected()), this, SLOT(slotEthernetDisconnected()));
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
-    connect(socket_, SIGNAL(errorOccured(QAbstractSocket::SocketError)), this, SLOT(slotEthernetError(QAbstractSocket::SocketError)));
+    connect(socket_, SIGNAL(errorOccurred(QAbstractSocket::SocketError)), this, SLOT(slotEthernetError(QAbstractSocket::SocketError)));
 #endif
 
     // Publish unconnected state
@@ -54,7 +51,7 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
 //  socket_->setSocketDescriptor(sockfd, QUdpSocket::UnconnectedState);
 //  bool success = socket_->bind(QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)), configuration_.ethernet_bindPort, QAbstractSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
-    ROS_INFO("Binding to %s:%u -> %s", QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)).toString().toLatin1().data(), configuration_.ethernet_bindPort, success?"ok":"failed");
+    RCLCPP_INFO(get_logger(), "Binding to %s:%u -> %s", QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)).toString().toLatin1().data(), configuration_.ethernet_bindPort, success?"ok":"failed");
 }
 
 Node::~Node()
@@ -62,7 +59,7 @@ Node::~Node()
     delete socket_;
 }
 
-void Node::rosCallback_ethernet(const ethernet_msgs::Packet::ConstPtr &msg)
+void Node::rosCallback_ethernet(const ethernet_msgs::msg::Packet::ConstSharedPtr &msg)
 {
     QNetworkDatagram datagram(QByteArray(reinterpret_cast<const char*>(msg->payload.data()), msg->payload.size()), QHostAddress(ethernet_msgs::nativeIp4ByArray(msg->receiver_ip)), msg->receiver_port);
     if (ethernet_msgs::nativeIp4ByArray(msg->sender_ip) != 0)
@@ -78,7 +75,7 @@ void Node::slotEthernetNewData()
         QNetworkDatagram datagram = socket_->receiveDatagram();
         //  ethernet_msgs::Packet packet; // moved to private member for optimization
 
-        packet.header.stamp = ros::Time::now();
+        packet.header.stamp = this->get_clock()->now();
         packet.header.frame_id = configuration_.frame;
 
         packet.sender_ip = ethernet_msgs::arrayByNativeIp4(datagram.senderAddress().toIPv4Address());
@@ -90,50 +87,50 @@ void Node::slotEthernetNewData()
         packet.payload.reserve(datagram.data().count());
         std::copy(datagram.data().constBegin(), datagram.data().constEnd(), std::back_inserter(packet.payload));
 
-        publisher_ethernet_packet_.publish(packet);
+        publisher_ethernet_packet_->publish(packet);
     }
 }
 
 // Note: UDP sockets are usually not "connected" or "disconnected"
 void Node::slotEthernetConnected()
 {
-    ethernet_msgs::Event event;
+    ethernet_msgs::msg::Event event;
 
-    event.header.stamp = ros::Time::now();
+    event.header.stamp = this->get_clock()->now();
     event.header.frame_id = configuration_.frame;
 
-    event.type = ethernet_msgs::EventType::CONNECTED;
+    event.type = ethernet_msgs::msg::EventType::CONNECTED;
 
-    publisher_ethernet_event_.publish(event);
+    publisher_ethernet_event_->publish(event);
 
-    ROS_INFO("Connected.");
+    RCLCPP_INFO(get_logger(), "Connected.");
 }
 
 void Node::slotEthernetDisconnected()
 {
-    ethernet_msgs::Event event;
+    ethernet_msgs::msg::Event event;
 
-    event.header.stamp = ros::Time::now();
+    event.header.stamp = this->get_clock()->now();
     event.header.frame_id = configuration_.frame;
 
-    event.type = ethernet_msgs::EventType::DISCONNECTED;
+    event.type = ethernet_msgs::msg::EventType::DISCONNECTED;
 
-    publisher_ethernet_event_.publish(event);
+    publisher_ethernet_event_->publish(event);
 
-    ROS_INFO("Disconnected.");
+    RCLCPP_INFO(get_logger(), "Disconnected.");
 }
 
-void Node::slotEthernetError(int error_code)
+void Node::slotEthernetError(QAbstractSocket::SocketError error_code)
 {
-    ethernet_msgs::Event event;
+    ethernet_msgs::msg::Event event;
 
-    event.header.stamp = ros::Time::now();
+    event.header.stamp = this->get_clock()->now();
     event.header.frame_id = configuration_.frame;
 
-    event.type = ethernet_msgs::EventType::SOCKETERROR;
+    event.type = ethernet_msgs::msg::EventType::SOCKETERROR;
     event.value = error_code;
 
-    publisher_ethernet_event_.publish(event);
+    publisher_ethernet_event_->publish(event);
 
-    ROS_WARN("Connection error occured, socket error code: %i", error_code);
+    RCLCPP_WARN(get_logger(), "Connection error occured, socket error code: %i", error_code);
 }

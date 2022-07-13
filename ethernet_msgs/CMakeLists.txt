@@ -1,34 +1,19 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(ethernet_msgs)
 
-#add_compile_options(-std=c++11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING "" FORCE)
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 
-find_package(catkin REQUIRED COMPONENTS
-  std_msgs
-  message_generation
-)
+rosidl_generate_interfaces(${PROJECT_NAME}
+    msg/Packet.msg
+    msg/GenericPacket.msg
+    msg/ProtocolType.msg
+    msg/Event.msg
+    msg/EventType.msg
+    msg/Packets.msg
+    DEPENDENCIES std_msgs)
 
-add_message_files(
-  FILES
-  Packet.msg
-  GenericPacket.msg
-  ProtocolType.msg
-  Event.msg
-  EventType.msg
-  Packets.msg
-)
+install(DIRECTORY include/
+    DESTINATION include/${PROJECT_NAME})
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS std_msgs
-)
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+ament_package()

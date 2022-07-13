@@ -1,7 +1,7 @@
 ## A single generic (IPv4, IPv6, ...) network packet.
 
 # Header
-Header header
+std_msgs/Header header
 
 # Protocol Type
 uint8 protocol          # enum defined in ProtocolType.msg

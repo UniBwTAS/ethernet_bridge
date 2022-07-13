@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>ethernet_bridge</name>
   <version>1.0.0</version>
   <description>Ethernet Bridges</description>
@@ -7,16 +8,14 @@
   <maintainer email="philipp.berthold@unibw.de">phbe</maintainer>
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>ethernet_msgs</build_depend>
-  <build_depend>librosqt</build_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>ethernet_msgs</build_export_depend>
-  <build_export_depend>librosqt</build_export_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>ethernet_msgs</exec_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>std_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>ethernet_msgs</depend>
+  <depend>libros2qt</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
 </package>

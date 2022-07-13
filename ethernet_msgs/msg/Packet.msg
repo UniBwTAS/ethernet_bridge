@@ -1,7 +1,7 @@
 ## A single IPv4 network packet.
 
 # Header
-Header header
+std_msgs/Header header
 
 # Connection Information
 uint8[4] sender_ip
