@@ -31,9 +31,15 @@ private:
         std::string topic_out;
         std::string redirect_address;
         int redirect_port;
+        std::string filter_address;
+        int filter_port;
     }   configuration_;
 
     // redirection rule
     ethernet_msgs::Packet::_receiver_ip_type new_receiver_address_;
     bool new_receiver_address_valid_{false};
+
+    // filter rule
+    ethernet_msgs::Packet::_sender_ip_type filter_address_value_;
+    bool filter_address_valid_{false};
 };

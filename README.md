@@ -131,7 +131,7 @@ The TCP client bridge publishes the current connection state for monitoring purp
 ```
 
 ### _redirector_: Packet Redirecting Node
-This packet can be used to change the recipients IP and port of `ethernet_msgs/Packet` in ROS on-the-fly. Its main use case is to read Ethernet packets from a ROS bag, altering their recipients, and passing them to a Ethernet bridge like `ethernet_bridge/udp`. This way, it can be used to re-inject Ethernet packets from a bag to the network and allow other parsers or proprietary manufacturer software to process the Ethernet data in the bag.
+This packet can be used to change or filter the recipients IP and port of `ethernet_msgs/Packet` in ROS on-the-fly. Its main use case is to read Ethernet packets from a ROS bag, altering their recipients, and passing them to a Ethernet bridge like `ethernet_bridge/udp`. This way, it can be used to re-inject Ethernet packets from a bag to the network and allow other parsers or proprietary manufacturer software to process the Ethernet data in the bag.
 
 #### Options
 
@@ -141,6 +141,9 @@ This packet can be used to change the recipients IP and port of `ethernet_msgs/P
 - `redirect_*`: Redirecting specific configuration segment
   - `redirect_address`: new IP or host address of recipient. Use "" if redirecting the IP is not desired.
   - `redirect_port`: new port of recipient. Use 0 if redirecting the port is not desired.
+- `filter_*`: Filtering specific configuration segment
+  - `filter_address`: only transmit packets which where sent from this IP. Use "" if filtering the IP is not desired.
+  - `filter_port`: only transmit packets which where sent from this port. Use 0 if filtering the port is not desired.
 
 #### Application Example
 
@@ -151,6 +154,8 @@ This packet can be used to change the recipients IP and port of `ethernet_msgs/P
     <param name="topic_out"         value="target/host_to_bus" />
     <param name="redirect_address"  value="192.168.1.123" />
     <param name="redirect_port"     value="0" />
+    <param name="filter_address"    value="192.168.1.31" />
+    <param name="filter_port"       value="3000" />
   </node>
 ```
 
