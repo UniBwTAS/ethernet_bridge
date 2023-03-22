@@ -41,3 +41,7 @@ target_link_libraries(udp_bundler ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
 ## Redirector
 add_executable(redirector src/redirector/main.cpp src/redirector/node.cpp)
 target_link_libraries(redirector ${catkin_LIBRARIES} Qt5::Core Qt5::Network)
+
+## File Sink
+add_executable(file_sink src/file_sink/main.cpp src/file_sink/node.cpp)
+target_link_libraries(file_sink ${catkin_LIBRARIES} Qt5::Core Qt5::Network)

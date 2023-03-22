@@ -28,6 +28,7 @@
 - UDP bundler node which bundles UDP packets of a burst (e.g. fragmented sensor measurement) and thereby drastically reduces the number of ROS messages
 - TCP client node
 - Packet redirecting node, can be used to send Ethernet messages from a ROS bag to the local network with modified recipients
+- File sink node, stores transferred Ethernet data to a file
 
 ## ROS Package Dependencies
 
@@ -156,6 +157,34 @@ This packet can be used to change or filter the recipients IP and port of `ether
     <param name="redirect_port"     value="0" />
     <param name="filter_address"    value="192.168.1.31" />
     <param name="filter_port"       value="3000" />
+  </node>
+```
+
+### _file_sink_: File Sink Node
+This packet stores the payload of `ethernet_msgs/Packet` in a file. Optionally, packet delimiter strings or filters can be utilized.
+
+#### Options
+
+- `topic_*`: ROS topic specific configuration segment
+  - `topic_in`: ROS topic with the original messages (subscribed)
+- `file_*`: File specific configuration segment
+  - `file_name`: the desired file name (use an absolute path in launch files). This file will be overwritten.
+- `packet_*`: Packet/export specific configuration segment
+  - `packet_delimiter`: string to be inserted between two consecutive `ethernet_msgs/Packet`s (optional). Use "" if not desired.
+- `filter_*`: Filtering specific configuration segment
+  - `filter_address`: only store packets which where sent from this IP. Use "" if filtering the IP is not desired.
+  - `filter_port`: only store packets which where sent from this port. Use 0 if filtering the port is not desired.
+
+#### Application Example
+
+```
+  <!-- Filter sink node -->
+  <node pkg="ethernet_bridge" type="file_sink" name="file_sink">
+    <param name="topic_in"          value="/bus_to_host" />
+    <param name="file_name"         command="echo -n '/home/user/nmea_dump.txt'" />
+    <param name="packet_delimiter"  command="echo -ne '\n\n'" />
+    <param name="filter_address"    value="" />
+    <param name="filter_port"       value="5000" />
   </node>
 ```
 
