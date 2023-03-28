@@ -181,7 +181,7 @@ This packet stores the payload of `ethernet_msgs/Packet` in a file. Optionally, 
   <!-- Filter sink node -->
   <node pkg="ethernet_bridge" type="file_sink" name="file_sink">
     <param name="topic_in"          value="/bus_to_host" />
-    <param name="file_name"         command="echo -n '/home/user/nmea_dump.txt'" />
+    <param name="file_name"         command="date +'/home/user/nmea_dump_%Y-%m-%d-%H-%M-%S.txt'" />
     <param name="packet_delimiter"  command="echo -ne '\n\n'" />
     <param name="filter_address"    value="" />
     <param name="filter_port"       value="5000" />

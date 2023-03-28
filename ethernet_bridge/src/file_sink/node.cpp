@@ -20,6 +20,14 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
     subscriber_ethernet_in_ = nh.subscribe(configuration_.topic_in, 100, &Node::rosCallback_ethernet_in, this);
 
     /// Create File Handle
+    // Check for trailing newline
+    if (!configuration_.file_name.empty() && configuration_.file_name.back() == '\n')
+    {
+        configuration_.file_name.pop_back();
+        ROS_INFO("Removed trailing newline character in file_name");
+    }
+
+    // Open file
     file.open(configuration_.file_name, std::ofstream::out | std::ofstream::binary /*| std::ofstream::app*/);
     if (!file.is_open() || !file.good())
     {
