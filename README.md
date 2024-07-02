@@ -47,6 +47,7 @@ This is the standard bridge for UDP communication and focuses on most applicatio
 - `ethernet_*`: Ethernet interface specific configuration segment
   - `ethernet_bindAddress`: specific local IP bind address (optional)
   - `ethernet_bindPort`: local listening port
+  - `ethernet_receiveBufferSize`: UDP buffer size (OS-level)
 
 #### Application Example
 
@@ -88,6 +89,7 @@ Depending on the choice of these parameters, an additional latency is introduced
 - `ethernet_*`: Ethernet interface specific configuration segment
   - `ethernet_bindAddress`: specific local IP bind address (optional)
   - `ethernet_bindPort`: local listening port
+  - `ethernet_receiveBufferSize`: UDP buffer size (OS-level)
 - `trigger_*`: Trigger specific configuration segment
   - `trigger_numberOfPackets`: parameter _Number of Packets_
   - `trigger_maximumPacketAge`: parameter _Maximum Packet Age_ in milliseconds

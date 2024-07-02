@@ -39,6 +39,7 @@ private:
         std::string frame;
         std::string ethernet_bindAddress;
         int         ethernet_bindPort;
+        int         ethernet_receiveBufferSize;
         int         trigger_numberOfPackets;
         int         trigger_maximumPacketAge;
         int         trigger_maximumIdleTime;

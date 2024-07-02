@@ -38,7 +38,7 @@ private:
         std::string frame;
         std::string ethernet_bindAddress;
         int         ethernet_bindPort;
-
+        int         ethernet_receiveBufferSize;
     }   configuration_;
 
     // ethernet

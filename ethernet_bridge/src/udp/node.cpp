@@ -21,6 +21,7 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
     // Ethernet connection
     private_nh.param<std::string>("ethernet_bindAddress", configuration_.ethernet_bindAddress, "0.0.0.0");
     private_nh.param<int>("ethernet_bindPort", configuration_.ethernet_bindPort, 55555);
+    private_nh.param<int>("ethernet_receiveBufferSize", configuration_.ethernet_receiveBufferSize, 20*1024*1024);
 
     /// Subscribing & Publishing
     ros::TransportHints t = ros::TransportHints().tcp().tcpNoDelay(true);
@@ -54,6 +55,11 @@ Node::Node(ros::NodeHandle& nh, ros::NodeHandle& private_nh) : nh_(nh), private_
 //  socket_->setSocketDescriptor(sockfd, QUdpSocket::UnconnectedState);
 //  bool success = socket_->bind(QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)), configuration_.ethernet_bindPort, QAbstractSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
+    // Set receive buffer size
+    if (configuration_.ethernet_receiveBufferSize >= 0)
+        socket_->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, configuration_.ethernet_receiveBufferSize);
+
+    /// Console feedback
     ROS_INFO("Binding to %s:%u -> %s", QHostAddress(QString::fromStdString(configuration_.ethernet_bindAddress)).toString().toLatin1().data(), configuration_.ethernet_bindPort, success?"ok":"failed");
 }
 
