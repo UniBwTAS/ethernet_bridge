@@ -113,9 +113,7 @@ void Node::slotEthernetNewData()
         packet.receiver_ip = ethernet_msgs::arrayByNativeIp4(datagram.destinationAddress().toIPv4Address());
         packet.receiver_port = datagram.destinationPort();
 
-        packet.payload.clear();
-        packet.payload.reserve(datagram.data().count());
-        std::copy(datagram.data().constBegin(), datagram.data().constEnd(), std::back_inserter(packet.payload));
+        packet.payload = std::vector<uint8_t>(datagram.data().cbegin(), datagram.data().cend());
 
         // Is it the first packet in the buffer? Then start the maximum age timer.
         if ((configuration_.trigger_maximumPacketAge > 0) && (bundler_buffer_.packets.size() == 1))
