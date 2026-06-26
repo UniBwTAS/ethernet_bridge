@@ -1,3 +1,6 @@
+> [!CAUTION]
+> **This `ros2` branch is outdated.** The [**`master`** branch](https://github.com/UniBwTAS/ethernet_bridge/tree/master) now supports **both ROS 1 and ROS 2** from a single source tree (selected at build time via `$ROS_VERSION`), with all bridge nodes ported. Please use `master` instead of this branch.
+
 # ethernet_bridge
 ## _Ethernet Bridge for ROS_
 
